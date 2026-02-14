@@ -48,10 +48,45 @@ func (patientRepository *PatientRepository) GetPatientsByOwner(ownerID int64) (*
 	var patients []domain.Patient
 	for rows.Next() {
 		var patient domain.Patient
-		if err := rows.Scan(&patient.ID, &patient.Name, &patient.Breed, &patient.AproxDateOfBirth, &patient.OwnerID); err != nil {
+		if err := rows.Scan(&patient.ID, &patient.Name, &patient.Species, &patient.Breed, &patient.AproxDateOfBirth, &patient.OwnerID); err != nil {
 			return nil, err
 		}
 		patients = append(patients, patient)
 	}
 	return &patients, nil
+}
+
+func (patientRepository *PatientRepository) UpdatePatient(patient *domain.Patient) error {
+	query := "UPDATE patients SET name = $1, species = $2, breed = $3, aprox_date_of_birth = $4, owner_id = $5 WHERE id = $6"
+	result, err := patientRepository.DB.Exec(query, patient.Name, patient.Species, patient.Breed, patient.AproxDateOfBirth, patient.OwnerID, patient.ID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrPatientNotFound
+	}
+	return nil
+}
+
+func (patientRepository *PatientRepository) DeletePatientByID(id int64) error {
+	result, err := patientRepository.DB.Exec("DELETE FROM patients WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrPatientNotFound
+	}
+
+	return nil
 }
