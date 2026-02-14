@@ -3,9 +3,11 @@ package database
 import "github.com/jmoiron/sqlx"
 
 type DataBase struct {
-	DB          *sqlx.DB
-	UserRepo    *UserRepository
-	PatientRepo *PatientRepository
+	DB               *sqlx.DB
+	UserRepo         *UserRepository
+	PatientRepo      *PatientRepository
+	ClientRepo       *ClientRepository
+	ConsultationRepo *ConsultationRepository
 }
 
 var createUserTable string = `
@@ -23,9 +25,11 @@ CREATE INDEX idx_users_dni ON users(dni);
 
 func NewDataBase(db *sqlx.DB) *DataBase {
 	return &DataBase{
-		DB:          db,
-		UserRepo:    &UserRepository{DB: db},
-		PatientRepo: &PatientRepository{DB: db},
+		DB:               db,
+		UserRepo:         &UserRepository{DB: db},
+		PatientRepo:      &PatientRepository{DB: db},
+		ClientRepo:       &ClientRepository{DB: db},
+		ConsultationRepo: &ConsultationRepository{DB: db},
 	}
 }
 
