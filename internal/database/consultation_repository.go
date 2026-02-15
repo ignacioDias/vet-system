@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"errors"
 	"vetsys/internal/domain"
 
@@ -29,11 +30,14 @@ func (consultationRepository *ConsultationRepository) GetConsultationByID(id int
 	query := `SELECT id, patient_id, reason, diagnosis, treatment, severity, is_completed, created_at, updated_at FROM consultations WHERE id = $1`
 	err := consultationRepository.DB.Get(&consultation, query, id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrConsultationNotFound
+		}
 		return nil, err
 	}
 	return &consultation, nil
 }
-func (consultationRepository *ConsultationRepository) GetConsultationsByClient(clientID int64) ([]domain.Consultation, error) {
+func (consultationRepository *ConsultationRepository) GetConsultationsByClientID(clientID int64) ([]domain.Consultation, error) {
 	query := `
 	SELECT c.id, c.patient_id, c.reason, c.diagnosis, 
 	       c.treatment, c.severity, c.is_completed, 
@@ -50,7 +54,7 @@ func (consultationRepository *ConsultationRepository) GetConsultationsByClient(c
 	}
 	return consultations, nil
 }
-func (consultationRepository *ConsultationRepository) GetConsultationsByPatient(patientID int64) ([]domain.Consultation, error) {
+func (consultationRepository *ConsultationRepository) GetConsultationsByPatientID(patientID int64) ([]domain.Consultation, error) {
 	query := `SELECT id, patient_id, reason, diagnosis, treatment, severity, is_completed, created_at, updated_at FROM consultations WHERE patient_id = $1`
 	var consultations []domain.Consultation
 	err := consultationRepository.DB.Select(&consultations, query, patientID)
