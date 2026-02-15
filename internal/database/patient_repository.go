@@ -38,22 +38,14 @@ func (patientRepository *PatientRepository) GetPatientByID(id int64) (*domain.Pa
 	return &patient, nil
 }
 
-func (patientRepository *PatientRepository) GetPatientsByOwner(ownerID int64) (*[]domain.Patient, error) {
+func (patientRepository *PatientRepository) GetPatientsByOwner(ownerID int64) ([]domain.Patient, error) {
 	query := `SELECT id, name, species, breed, aprox_date_of_birth, owner_id FROM patients WHERE owner_id = $1`
-	rows, err := patientRepository.DB.Query(query)
+	var patients []domain.Patient
+	err := patientRepository.DB.Select(&patients, query, ownerID)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var patients []domain.Patient
-	for rows.Next() {
-		var patient domain.Patient
-		if err := rows.Scan(&patient.ID, &patient.Name, &patient.Species, &patient.Breed, &patient.AproxDateOfBirth, &patient.OwnerID); err != nil {
-			return nil, err
-		}
-		patients = append(patients, patient)
-	}
-	return &patients, nil
+	return patients, nil
 }
 
 func (patientRepository *PatientRepository) UpdatePatient(patient *domain.Patient) error {
