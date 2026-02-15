@@ -77,8 +77,25 @@ func (userRepository *UserRepository) DeleteUserByID(id int64) error {
 }
 
 func (userRepository *UserRepository) UpdateUser(user *domain.User) error {
-	query := "UPDATE users SET dni = $1, email = $2, password = $3, name = $4, profile_picture = $5 WHERE id = $6"
-	result, err := userRepository.DB.Exec(query, user.DNI, user.Email, user.Password, user.Name, user.ProfilePicture, user.ID)
+	query := "UPDATE users SET dni = $1, email = $2, name = $3, profile_picture = $4 WHERE id = $5"
+	result, err := userRepository.DB.Exec(query, user.DNI, user.Email, user.Name, user.ProfilePicture, user.ID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}
+
+func (userRepository *UserRepository) UpdatePassword(id int64, password string) error {
+	query := "UPDATE users SET password = $1 WHERE id = $2"
+	result, err := userRepository.DB.Exec(query, password, id)
 	if err != nil {
 		return err
 	}
