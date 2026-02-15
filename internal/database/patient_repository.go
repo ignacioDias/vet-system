@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"errors"
 	"vetsys/domain"
 
@@ -33,6 +34,9 @@ func (patientRepository *PatientRepository) GetPatientByID(id int64) (*domain.Pa
 	patient := domain.Patient{}
 	err := patientRepository.DB.Get(&patient, query, id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrPatientNotFound
+		}
 		return nil, err
 	}
 	return &patient, nil
