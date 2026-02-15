@@ -2,7 +2,7 @@ package database
 
 import (
 	"errors"
-	"vetsys/domain"
+	"vetsys/internal/domain"
 
 	"github.com/jmoiron/sqlx"
 )

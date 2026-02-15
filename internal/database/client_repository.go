@@ -1,8 +1,9 @@
 package database
 
 import (
+	"database/sql"
 	"errors"
-	"vetsys/domain"
+	"vetsys/internal/domain"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -28,6 +29,9 @@ func (clientRepository *ClientRepository) GetClientByID(id int64) (*domain.Clien
 	var client domain.Client
 	err := clientRepository.DB.Get(&client, "SELECT id, dni, name, phone_number FROM clients WHERE id = $1", id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrClientNotFound
+		}
 		return nil, err
 	}
 	return &client, nil
@@ -37,6 +41,9 @@ func (clientRepository *ClientRepository) GetClientByDNI(dni string) (*domain.Cl
 	var client domain.Client
 	err := clientRepository.DB.Get(&client, "SELECT id, dni, name, phone_number FROM clients WHERE dni = $1", dni)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrClientNotFound
+		}
 		return nil, err
 	}
 	return &client, nil
