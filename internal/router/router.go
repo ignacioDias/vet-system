@@ -13,6 +13,7 @@ type Router struct {
 	patientHandler      *handler.PatientHandler
 	userHandler         *handler.UserHandler
 	authMiddleware      *middleware.AuthMiddleware
+	rateLimitMiddleware *middleware.RateLimitMiddleware
 }
 
 func NewRouter(
@@ -21,6 +22,7 @@ func NewRouter(
 	patientHandler *handler.PatientHandler,
 	userHandler *handler.UserHandler,
 	authMiddleware *middleware.AuthMiddleware,
+	rateLimitMiddleware *middleware.RateLimitMiddleware,
 ) *Router {
 	return &Router{
 		mux:                 http.NewServeMux(),
@@ -29,14 +31,15 @@ func NewRouter(
 		patientHandler:      patientHandler,
 		userHandler:         userHandler,
 		authMiddleware:      authMiddleware,
+		rateLimitMiddleware: rateLimitMiddleware,
 	}
 }
 
 func (r *Router) SetupRoutes() *http.ServeMux {
 
 	//USERS
-	r.mux.HandleFunc("POST /api/auth/login", r.userHandler.LogInHandler)
-	r.mux.HandleFunc("POST /api/users", r.userHandler.CreateUserHandler)
+	r.mux.HandleFunc("POST /api/auth/login", r.rateLimitMiddleware.RateLimit(r.userHandler.LogInHandler))
+	r.mux.HandleFunc("POST /api/users", r.rateLimitMiddleware.RateLimit(r.userHandler.CreateUserHandler))
 	r.mux.HandleFunc("POST /api/auth/logout", r.authMiddleware.Authenticate(r.userHandler.LogOutHandler))
 	r.mux.HandleFunc("DELETE /api/users/{user-id}", r.authMiddleware.Authenticate(r.userHandler.DeleteUserHandler))
 	r.mux.HandleFunc("PUT /api/users/{user-id}", r.authMiddleware.Authenticate(r.userHandler.UpdateUserHandler))
