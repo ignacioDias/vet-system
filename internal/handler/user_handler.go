@@ -14,16 +14,45 @@ type UserHandler struct {
 	UserRepo *database.UserRepository
 }
 
-type UserResponse struct {
-	ID             int64  `db:"id" json:"id"`
-	DNI            string `db:"dni" json:"dni"`
-	Email          string `db:"email" json:"email"`
-	Name           string `db:"name" json:"name"`
-	ProfilePicture string `db:"profile_picture" json:"profilePicture"`
-}
-
 type UpdatePasswordRequest struct {
 	Password string `json:"password"`
+}
+
+func (UserHandler *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (userHandler *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+	var user domain.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if !isValidPassword(user.Password) {
+		http.Error(w, "Invalid password", http.StatusBadRequest)
+		return
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
+	if err != nil {
+		http.Error(w, "Failed to process password", http.StatusInternalServerError)
+		return
+	}
+	user.Password = string(hashedPassword)
+
+	err = userHandler.UserRepo.CreateUser(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 }
 
 func (userHandler *UserHandler) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
