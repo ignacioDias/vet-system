@@ -8,6 +8,7 @@ import (
 	"time"
 	"vetsys/internal/database"
 	"vetsys/internal/domain"
+	"vetsys/internal/middleware"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -76,9 +77,9 @@ func (UserHandler *UserHandler) LogInHandler(w http.ResponseWriter, r *http.Requ
 		SameSite: http.SameSiteStrictMode,
 		Expires:  session.ExpiresAt,
 	})
-
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message":"logged in"}`))
+	json.NewEncoder(w).Encode(user)
 }
 
 func (userHandler *UserHandler) LogOutHandler(w http.ResponseWriter, r *http.Request) {
@@ -144,18 +145,11 @@ func (userHandler *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http
 }
 
 func (userHandler *UserHandler) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("user-id")
-	if id == "" {
-		http.Error(w, "No id passed", http.StatusBadRequest)
+	idValue, ok := userHandler.authorizeUserAccess(w, r)
+	if !ok {
 		return
 	}
-
-	idValue, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	err = userHandler.UserRepo.DeleteUserByID(idValue)
+	err := userHandler.UserRepo.DeleteUserByID(idValue)
 	if err == database.ErrUserNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -164,22 +158,17 @@ func (userHandler *UserHandler) DeleteUserHandler(w http.ResponseWriter, r *http
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 func (userHandler *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("user-id")
-	if id == "" {
-		http.Error(w, "No id passed", http.StatusBadRequest)
+	idValue, ok := userHandler.authorizeUserAccess(w, r)
+	if !ok {
 		return
 	}
 
-	idValue, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 	var userUpdate UserUpdate
-	err = json.NewDecoder(r.Body).Decode(&userUpdate)
+	err := json.NewDecoder(r.Body).Decode(&userUpdate)
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
@@ -233,18 +222,13 @@ func (userHandler *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http
 }
 
 func (userHandler *UserHandler) UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("user-id")
-	if id == "" {
-		http.Error(w, "No id passed", http.StatusBadRequest)
+	idValue, ok := userHandler.authorizeUserAccess(w, r)
+	if !ok {
 		return
 	}
-	idValue, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+
 	var req UpdatePasswordRequest
-	err = json.NewDecoder(r.Body).Decode(&req)
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
@@ -272,8 +256,34 @@ func (userHandler *UserHandler) UpdatePasswordHandler(w http.ResponseWriter, r *
 	userHandler.LogOutHandler(w, r)
 }
 
+func (userHandler *UserHandler) authorizeUserAccess(w http.ResponseWriter, r *http.Request) (int64, bool) {
+	id := r.PathValue("user-id")
+	if id == "" {
+		http.Error(w, "No id passed", http.StatusBadRequest)
+		return 0, false
+	}
+
+	pathUserID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return 0, false
+	}
+
+	sessionUserID, ok := middleware.GetUserID(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return 0, false
+	}
+
+	if sessionUserID != pathUserID {
+		http.Error(w, "Forbidden: You can only modify your own account", http.StatusForbidden)
+		return 0, false
+	}
+	return pathUserID, true
+}
+
 func isValidPassword(password string) bool {
-	if len(password) < 8 {
+	if len(password) < 8 || len(password) > 72 {
 		return false
 	}
 	hasUpper := false

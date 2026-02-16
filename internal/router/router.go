@@ -21,8 +21,6 @@ func NewRouter(
 	consultationHandler *handler.ConsultationHandler,
 	patientHandler *handler.PatientHandler,
 	userHandler *handler.UserHandler,
-	authMiddleware *middleware.AuthMiddleware,
-	rateLimitMiddleware *middleware.RateLimitMiddleware,
 ) *Router {
 	return &Router{
 		mux:                 http.NewServeMux(),
@@ -30,8 +28,8 @@ func NewRouter(
 		consultationHandler: consultationHandler,
 		patientHandler:      patientHandler,
 		userHandler:         userHandler,
-		authMiddleware:      authMiddleware,
-		rateLimitMiddleware: rateLimitMiddleware,
+		authMiddleware:      &middleware.AuthMiddleware{SessionRepo: userHandler.SessionRepo},
+		rateLimitMiddleware: middleware.NewRateLimitMiddleware(),
 	}
 }
 
