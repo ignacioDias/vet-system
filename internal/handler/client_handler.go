@@ -12,6 +12,12 @@ type ClientHandler struct {
 	clientRepo *database.ClientRepository
 }
 
+type ClientUpdate struct {
+	DNI         *string `json:"dni"`
+	Name        *string `json:"name"`
+	PhoneNumber *string `json:"phoneNumber"`
+}
+
 func (clientHandler *ClientHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
 	var client domain.Client
 	err := json.NewDecoder(r.Body).Decode(&client)
@@ -85,15 +91,43 @@ func (clientHandler *ClientHandler) UpdateClientHandler(w http.ResponseWriter, r
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	var client domain.Client
-	err = json.NewDecoder(r.Body).Decode(&client)
+	var clientUpdate ClientUpdate
+	err = json.NewDecoder(r.Body).Decode(&clientUpdate)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	client.ID = idValue
-
-	err = clientHandler.clientRepo.UpdateClient(&client)
+	client, err := clientHandler.clientRepo.GetClientByID(idValue)
+	if err == database.ErrClientNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if clientUpdate.DNI != nil {
+		if *clientUpdate.DNI == "" {
+			http.Error(w, "DNI cannot be empty", http.StatusBadRequest)
+			return
+		}
+		client.DNI = *clientUpdate.DNI
+	}
+	if clientUpdate.Name != nil {
+		if *clientUpdate.Name == "" {
+			http.Error(w, "Name cannot be empty", http.StatusBadRequest)
+			return
+		}
+		client.Name = *clientUpdate.Name
+	}
+	if clientUpdate.PhoneNumber != nil {
+		if *clientUpdate.PhoneNumber == "" {
+			http.Error(w, "Phone number cannot be empty", http.StatusBadRequest)
+			return
+		}
+		client.PhoneNumber = *clientUpdate.PhoneNumber
+	}
+	err = clientHandler.clientRepo.UpdateClient(client)
 	if err == database.ErrClientNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

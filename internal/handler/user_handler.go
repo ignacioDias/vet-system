@@ -33,6 +33,12 @@ type LoginRequest struct {
 type UpdatePasswordRequest struct {
 	Password string `json:"password"`
 }
+type UserUpdate struct {
+	DNI            *string `json:"dni"`
+	Email          *string `json:"email"`
+	Name           *string `json:"name"`
+	ProfilePicture *string `json:"profilePicture"`
+}
 
 func (UserHandler *UserHandler) LogInHandler(w http.ResponseWriter, r *http.Request) {
 	var loginRequest LoginRequest
@@ -172,14 +178,49 @@ func (userHandler *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	var user domain.User
-	err = json.NewDecoder(r.Body).Decode(&user)
+	var userUpdate UserUpdate
+	err = json.NewDecoder(r.Body).Decode(&userUpdate)
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	user.ID = idValue
-	err = userHandler.UserRepo.UpdateUser(&user)
+
+	user, err := userHandler.UserRepo.GetUserByID(idValue)
+	if err == database.ErrUserNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if userUpdate.DNI != nil {
+		if *userUpdate.DNI == "" {
+			http.Error(w, "DNI cannot be empty", http.StatusBadRequest)
+			return
+		}
+		user.DNI = *userUpdate.DNI
+	}
+	if userUpdate.Email != nil {
+		if *userUpdate.Email == "" {
+			http.Error(w, "Email cannot be empty", http.StatusBadRequest)
+			return
+		}
+		user.Email = *userUpdate.Email
+	}
+	if userUpdate.Name != nil {
+		if *userUpdate.Name == "" {
+			http.Error(w, "Name cannot be empty", http.StatusBadRequest)
+			return
+		}
+		user.Name = *userUpdate.Name
+	}
+	if userUpdate.ProfilePicture != nil {
+		user.ProfilePicture = *userUpdate.ProfilePicture
+	}
+
+	err = userHandler.UserRepo.UpdateUser(user)
 	if err == database.ErrUserNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -228,7 +269,7 @@ func (userHandler *UserHandler) UpdatePasswordHandler(w http.ResponseWriter, r *
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	userHandler.LogOutHandler(w, r)
 }
 
 func isValidPassword(password string) bool {

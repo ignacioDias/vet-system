@@ -14,12 +14,21 @@ type ConsultationHandler struct {
 }
 
 type ConsultationRequest struct {
-	PatientID   int64           `db:"patient_id" json:"patient_id"`
-	Reason      string          `db:"reason" json:"reason"`
-	Diagnosis   string          `db:"diagnosis" json:"diagnosis"`
-	Treatment   string          `db:"treatment" json:"treatment"`
-	Severity    domain.Severity `db:"severity" json:"severity"`
-	IsCompleted bool            `db:"is_completed" json:"is_completed"`
+	PatientID   int64           `json:"patient_id"`
+	Reason      string          `json:"reason"`
+	Diagnosis   string          `json:"diagnosis"`
+	Treatment   string          `json:"treatment"`
+	Severity    domain.Severity `json:"severity"`
+	IsCompleted bool            `json:"is_completed"`
+}
+
+type ConsultationUpdate struct {
+	PatientID   *int64           `json:"patient_id"`
+	Reason      *string          `json:"reason"`
+	Diagnosis   *string          `json:"diagnosis"`
+	Treatment   *string          `json:"treatment"`
+	Severity    *domain.Severity `json:"severity"`
+	IsCompleted *bool            `json:"is_completed"`
 }
 
 func (consultationHandler *ConsultationHandler) CreateConsultationHandler(w http.ResponseWriter, r *http.Request) {
@@ -143,23 +152,53 @@ func (consultationHandler *ConsultationHandler) UpdateConsultationHandler(w http
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	var consultationRequest ConsultationRequest
-	err = json.NewDecoder(r.Body).Decode(&consultationRequest)
+	var consultationUpdate ConsultationUpdate
+	err = json.NewDecoder(r.Body).Decode(&consultationUpdate)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	consultation := domain.Consultation{
-		ID:          idValue,
-		PatientID:   consultationRequest.PatientID,
-		Reason:      consultationRequest.Reason,
-		Diagnosis:   consultationRequest.Diagnosis,
-		Treatment:   consultationRequest.Treatment,
-		Severity:    consultationRequest.Severity,
-		IsCompleted: consultationRequest.IsCompleted,
-		UpdatedAt:   time.Now(),
+
+	consultation, err := consultationHandler.consultationRepo.GetConsultationByID(idValue)
+	if err == database.ErrConsultationNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
-	err = consultationHandler.consultationRepo.UpdateConsultation(&consultation)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if consultationUpdate.PatientID != nil {
+		if *consultationUpdate.PatientID <= 0 {
+			http.Error(w, "PatientID must be greater than 0", http.StatusBadRequest)
+			return
+		}
+		consultation.PatientID = *consultationUpdate.PatientID
+	}
+	if consultationUpdate.Reason != nil {
+		if *consultationUpdate.Reason == "" {
+			http.Error(w, "Reason cannot be empty", http.StatusBadRequest)
+			return
+		}
+		consultation.Reason = *consultationUpdate.Reason
+	}
+	if consultationUpdate.Diagnosis != nil {
+		consultation.Diagnosis = *consultationUpdate.Diagnosis
+	}
+	if consultationUpdate.Treatment != nil {
+		consultation.Treatment = *consultationUpdate.Treatment
+	}
+	if consultationUpdate.Severity != nil {
+		consultation.Severity = *consultationUpdate.Severity
+	}
+	if consultationUpdate.IsCompleted != nil {
+		consultation.IsCompleted = *consultationUpdate.IsCompleted
+	}
+
+	consultation.UpdatedAt = time.Now()
+
+	err = consultationHandler.consultationRepo.UpdateConsultation(consultation)
 	if err == database.ErrConsultationNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
