@@ -43,11 +43,9 @@ func (s *Server) Shutdown(ctx context.Context) error {
 
 func (s *Server) StartServer(router router.Router) {
 
-	// Canal para manejar señales de interrupción
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	// Iniciar servidor en goroutine
 	go func() {
 		if err := s.Initialize(); err != nil {
 			log.Fatalf("Server failed to start: %v", err)
@@ -56,11 +54,9 @@ func (s *Server) StartServer(router router.Router) {
 
 	log.Println("Server started successfully")
 
-	// Esperar señal de interrupción
 	<-done
 	log.Println("Server stopping...")
 
-	// Shutdown gracefully con timeout de 30 segundos
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

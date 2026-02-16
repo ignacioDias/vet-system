@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 	"vetsys/internal/database"
@@ -35,7 +36,6 @@ type UpdatePasswordRequest struct {
 	Password string `json:"password"`
 }
 type UserUpdate struct {
-	DNI            *string `json:"dni"`
 	Email          *string `json:"email"`
 	Name           *string `json:"name"`
 	ProfilePicture *string `json:"profilePicture"`
@@ -116,6 +116,26 @@ func (userHandler *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	if req.Name == "" {
+		http.Error(w, "Name is required", http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" {
+		http.Error(w, "Email is required", http.StatusBadRequest)
+		return
+	}
+
+	if !isValidEmail(req.Email) {
+		http.Error(w, "Invalid email format", http.StatusBadRequest)
+		return
+	}
+
+	if req.ProfilePicture == "" {
+		req.ProfilePicture = "https://oyster.ignimgs.com/mediawiki/apis.ign.com/adventure-time-hey-ice-king/a/a6/JakeHeadshot.jpg"
+	}
+
 	if !isValidPassword(req.Password) {
 		http.Error(w, "Invalid password", http.StatusBadRequest)
 		return
@@ -183,17 +203,13 @@ func (userHandler *UserHandler) UpdateUserHandler(w http.ResponseWriter, r *http
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	if userUpdate.DNI != nil {
-		if *userUpdate.DNI == "" {
-			http.Error(w, "DNI cannot be empty", http.StatusBadRequest)
-			return
-		}
-		user.DNI = *userUpdate.DNI
-	}
 	if userUpdate.Email != nil {
 		if *userUpdate.Email == "" {
 			http.Error(w, "Email cannot be empty", http.StatusBadRequest)
+			return
+		}
+		if !isValidEmail(*userUpdate.Email) {
+			http.Error(w, "Invalid email format", http.StatusBadRequest)
 			return
 		}
 		user.Email = *userUpdate.Email
@@ -280,6 +296,11 @@ func (userHandler *UserHandler) authorizeUserAccess(w http.ResponseWriter, r *ht
 		return 0, false
 	}
 	return pathUserID, true
+}
+
+func isValidEmail(email string) bool {
+	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+	return emailRegex.MatchString(email)
 }
 
 func isValidPassword(password string) bool {

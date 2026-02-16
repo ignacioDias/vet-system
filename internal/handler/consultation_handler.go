@@ -38,6 +38,16 @@ func (consultationHandler *ConsultationHandler) CreateConsultationHandler(w http
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	if consultationRequest.Reason == "" {
+		http.Error(w, "Reason is required", http.StatusBadRequest)
+		return
+	}
+	if !isValidSeverity(consultationRequest.Severity) {
+		http.Error(w, "Invalid severity. Must be LOW, MEDIUM, HIGH, or CRITICAL", http.StatusBadRequest)
+		return
+	}
+
 	consultation := domain.NewConsultation(consultationRequest.PatientID, consultationRequest.Reason, consultationRequest.Diagnosis, consultationRequest.Treatment, consultationRequest.Severity)
 	err = consultationHandler.consultationRepo.CreateConsultation(consultation)
 	if err != nil {
@@ -190,6 +200,10 @@ func (consultationHandler *ConsultationHandler) UpdateConsultationHandler(w http
 		consultation.Treatment = *consultationUpdate.Treatment
 	}
 	if consultationUpdate.Severity != nil {
+		if !isValidSeverity(*consultationUpdate.Severity) {
+			http.Error(w, "Invalid severity. Must be LOW, MEDIUM, HIGH, or CRITICAL", http.StatusBadRequest)
+			return
+		}
 		consultation.Severity = *consultationUpdate.Severity
 	}
 	if consultationUpdate.IsCompleted != nil {
@@ -230,4 +244,11 @@ func (consultationHandler *ConsultationHandler) DeleteConsultationHandler(w http
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func isValidSeverity(severity domain.Severity) bool {
+	return severity == domain.SeverityLow ||
+		severity == domain.SeverityMedium ||
+		severity == domain.SeverityHigh ||
+		severity == domain.SeverityCritical
 }

@@ -25,6 +25,20 @@ func (clientHandler *ClientHandler) CreateClient(w http.ResponseWriter, r *http.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	if client.Name == "" {
+		http.Error(w, "Name is required", http.StatusBadRequest)
+		return
+	}
+	if client.PhoneNumber == "" {
+		http.Error(w, "Phone number is required", http.StatusBadRequest)
+		return
+	}
+	if client.DNI == "" {
+		http.Error(w, "DNI is required", http.StatusBadRequest)
+		return
+	}
+
 	err = clientHandler.clientRepo.CreateClient(&client)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

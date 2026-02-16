@@ -1,6 +1,8 @@
 package database
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+)
 
 type DataBase struct {
 	DB               *sqlx.DB
@@ -108,5 +110,6 @@ func (d *DataBase) Init() error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

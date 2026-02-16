@@ -18,7 +18,6 @@ type PatientUpdate struct {
 	Species          *string    `json:"species"`
 	Breed            *string    `json:"breed"`
 	AproxDateOfBirth *time.Time `json:"aproxDateOfBirth"`
-	OwnerID          *int64     `json:"ownerId"`
 }
 
 func (patientHandler *PatientHandler) CreatePatientHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,6 +27,24 @@ func (patientHandler *PatientHandler) CreatePatientHandler(w http.ResponseWriter
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	if patient.Name == "" {
+		http.Error(w, "Name is required", http.StatusBadRequest)
+		return
+	}
+	if patient.Species == "" {
+		http.Error(w, "Species is required", http.StatusBadRequest)
+		return
+	}
+	if patient.Breed == "" {
+		http.Error(w, "Breed is required", http.StatusBadRequest)
+		return
+	}
+	if patient.AproxDateOfBirth.IsZero() {
+		http.Error(w, "Approximate date of birth is required", http.StatusBadRequest)
+		return
+	}
+
 	err = patientHandler.patientRepo.CreatePatient(&patient)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -135,13 +152,6 @@ func (patientHandler *PatientHandler) UpdatePatientHandler(w http.ResponseWriter
 	}
 	if patientUpdate.AproxDateOfBirth != nil {
 		patient.AproxDateOfBirth = *patientUpdate.AproxDateOfBirth
-	}
-	if patientUpdate.OwnerID != nil {
-		if *patientUpdate.OwnerID <= 0 {
-			http.Error(w, "OwnerID must be greater than 0", http.StatusBadRequest)
-			return
-		}
-		patient.OwnerID = *patientUpdate.OwnerID
 	}
 
 	err = patientHandler.patientRepo.UpdatePatient(patient)
