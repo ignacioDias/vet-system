@@ -37,7 +37,6 @@ func (auth *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc
 	}
 }
 
-// Helper para obtener userID del contexto en tus handlers
 func GetUserID(ctx context.Context) (int64, bool) {
 	userID, ok := ctx.Value(UserIDKey).(int64)
 	return userID, ok

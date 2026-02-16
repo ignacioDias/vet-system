@@ -106,28 +106,24 @@ func (consultationHandler *ConsultationHandler) GetConsultationsByPatientIDHandl
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(consultations)
 }
-func (consultationHandler *ConsultationHandler) GetConsultationsByIsCompletedIDHandler(w http.ResponseWriter, r *http.Request) {
-	isCompleted := r.PathValue("is-completed")
-	if isCompleted == "" {
-		http.Error(w, "No id passed", http.StatusBadRequest)
-		return
-	}
-	isCompletedValue, err := strconv.ParseBool(isCompleted)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	consultations, err := consultationHandler.consultationRepo.GetConsultationsByIsCompleted(isCompletedValue)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(consultations)
-}
+
 func (consultationHandler *ConsultationHandler) GetAllConsultationsHandler(w http.ResponseWriter, r *http.Request) {
-	consultations, err := consultationHandler.consultationRepo.GetAllConsultations()
+	isCompletedParam := r.URL.Query().Get("is_completed")
+
+	var consultations []domain.Consultation
+	var err error
+
+	if isCompletedParam != "" {
+		isCompletedValue, parseErr := strconv.ParseBool(isCompletedParam)
+		if parseErr != nil {
+			http.Error(w, "Invalid is_completed parameter. Use 'true' or 'false'", http.StatusBadRequest)
+			return
+		}
+		consultations, err = consultationHandler.consultationRepo.GetConsultationsByIsCompleted(isCompletedValue)
+	} else {
+		consultations, err = consultationHandler.consultationRepo.GetAllConsultations()
+	}
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

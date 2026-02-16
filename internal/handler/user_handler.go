@@ -34,7 +34,7 @@ type UpdatePasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func (UserHandler *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (UserHandler *UserHandler) LogInHandler(w http.ResponseWriter, r *http.Request) {
 	var loginRequest LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&loginRequest)
 	if err != nil {
