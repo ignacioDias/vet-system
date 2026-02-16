@@ -3,7 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 	"vetsys/internal/database"
 	"vetsys/internal/domain"
 
@@ -11,36 +13,116 @@ import (
 )
 
 type UserHandler struct {
-	UserRepo *database.UserRepository
+	UserRepo    *database.UserRepository
+	SessionRepo *database.SessionRepository
 }
 
+var isProduction bool = os.Getenv("ENV") == "production"
+
+type CreateUserRequest struct {
+	DNI            string `json:"dni"`
+	Email          string `json:"email"`
+	Password       string `json:"password"`
+	Name           string `json:"name"`
+	ProfilePicture string `json:"profilePicture"`
+}
+type LoginRequest struct {
+	DNI      string `json:"dni"`
+	Password string `json:"password"`
+}
 type UpdatePasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func (UserHandler *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (userHandler *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	var user domain.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+func (UserHandler *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	var loginRequest LoginRequest
+	err := json.NewDecoder(r.Body).Decode(&loginRequest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if !isValidPassword(user.Password) {
+	user, err := UserHandler.UserRepo.GetUserByDNI(loginRequest.DNI)
+	if err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password))
+	if err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+	session, err := domain.NewSession(user.ID, 24*time.Hour)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = UserHandler.SessionRepo.CreateSession(session)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    session.ID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   isProduction, // false only in localhost dev
+		SameSite: http.SameSiteStrictMode,
+		Expires:  session.ExpiresAt,
+	})
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message":"logged in"}`))
+}
+
+func (userHandler *UserHandler) LogOutHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		http.Error(w, "No active session", http.StatusUnauthorized)
+		return
+	}
+
+	err = userHandler.SessionRepo.DeleteSessionByID(cookie.Value)
+	if err != nil && err != database.ErrSessionNotFound {
+		http.Error(w, "Server error", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   isProduction,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   -1,
+	})
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message":"logged out"}`))
+}
+
+func (userHandler *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+	var req CreateUserRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if !isValidPassword(req.Password) {
 		http.Error(w, "Invalid password", http.StatusBadRequest)
 		return
 	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 14)
 	if err != nil {
 		http.Error(w, "Failed to process password", http.StatusInternalServerError)
 		return
 	}
-	user.Password = string(hashedPassword)
+	req.Password = string(hashedPassword)
 
-	err = userHandler.UserRepo.CreateUser(&user)
+	user := domain.NewUser(req.DNI, req.Email, req.Password, req.Name, req.ProfilePicture)
+
+	err = userHandler.UserRepo.CreateUser(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

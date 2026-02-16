@@ -9,8 +9,7 @@ import (
 )
 
 type ClientHandler struct {
-	clientRepo  *database.ClientRepository
-	sessionRepo *database.SessionRepository
+	clientRepo *database.ClientRepository
 }
 
 func (clientHandler *ClientHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
