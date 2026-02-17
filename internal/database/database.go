@@ -5,12 +5,13 @@ import (
 )
 
 type DataBase struct {
-	DB               *sqlx.DB
-	UserRepo         *UserRepository
-	PatientRepo      *PatientRepository
-	ClientRepo       *ClientRepository
-	ConsultationRepo *ConsultationRepository
-	SessionRepo      *SessionRepository
+	DB                       *sqlx.DB
+	UserRepo                 *UserRepository
+	PatientRepo              *PatientRepository
+	ClientRepo               *ClientRepository
+	ConsultationRepo         *ConsultationRepository
+	SessionRepo              *SessionRepository
+	AllowedRegistrationsRepo *AllowedRegistrationRepository
 }
 
 var createUserTable string = `
@@ -74,14 +75,23 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
 `
 
+var createAllowedRegistrationsTable string = `
+CREATE TABLE IF NOT EXISTS allowed_registrations (
+    dni TEXT PRIMARY KEY,
+    used BOOLEAN NOT NULL DEFAULT FALSE
+);
+CREATE INDEX IF NOT EXISTS idx_allowed_registrations_used ON allowed_registrations(used);
+`
+
 func NewDataBase(db *sqlx.DB) *DataBase {
 	return &DataBase{
-		DB:               db,
-		UserRepo:         &UserRepository{DB: db},
-		PatientRepo:      &PatientRepository{DB: db},
-		ClientRepo:       &ClientRepository{DB: db},
-		ConsultationRepo: &ConsultationRepository{DB: db},
-		SessionRepo:      &SessionRepository{DB: db},
+		DB:                       db,
+		UserRepo:                 &UserRepository{DB: db},
+		PatientRepo:              &PatientRepository{DB: db},
+		ClientRepo:               &ClientRepository{DB: db},
+		ConsultationRepo:         &ConsultationRepository{DB: db},
+		SessionRepo:              &SessionRepository{DB: db},
+		AllowedRegistrationsRepo: &AllowedRegistrationRepository{DB: db},
 	}
 }
 
@@ -107,6 +117,11 @@ func (d *DataBase) Init() error {
 	}
 
 	_, err = d.DB.Exec(createSessionsTable)
+	if err != nil {
+		return err
+	}
+
+	_, err = d.DB.Exec(createAllowedRegistrationsTable)
 	if err != nil {
 		return err
 	}

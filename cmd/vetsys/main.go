@@ -39,7 +39,7 @@ func main() {
 	clientHandler := handler.NewClientHandler(db.ClientRepo)
 	consultHandler := handler.NewConsultationHandler(db.ConsultationRepo)
 	patientHandler := handler.NewPatientHandler(db.PatientRepo)
-	userHandler := handler.NewUserHandler(db.UserRepo, db.SessionRepo)
+	userHandler := handler.NewUserHandler(db.UserRepo, db.SessionRepo, db.AllowedRegistrationsRepo)
 
 	r := router.NewRouter(clientHandler, consultHandler, patientHandler, userHandler)
 	srv := server.NewServer("8888", r)

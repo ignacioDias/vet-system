@@ -32,6 +32,10 @@ func (clientHandler *ClientHandler) CreateClient(w http.ResponseWriter, r *http.
 		return
 	}
 
+	if client.DNI == "" {
+		http.Error(w, "DNI is required", http.StatusBadRequest)
+		return
+	}
 	if client.Name == "" {
 		http.Error(w, "Name is required", http.StatusBadRequest)
 		return
@@ -40,8 +44,12 @@ func (clientHandler *ClientHandler) CreateClient(w http.ResponseWriter, r *http.
 		http.Error(w, "Phone number is required", http.StatusBadRequest)
 		return
 	}
-	if client.DNI == "" {
-		http.Error(w, "DNI is required", http.StatusBadRequest)
+	if err == database.ErrDNIInvalidOrUsed {
+		http.Error(w, "DNI not allowed for registration or already used", http.StatusForbidden)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

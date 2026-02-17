@@ -15,14 +15,16 @@ import (
 )
 
 type UserHandler struct {
-	UserRepo    *database.UserRepository
-	SessionRepo *database.SessionRepository
+	UserRepo          *database.UserRepository
+	SessionRepo       *database.SessionRepository
+	AllowedRegistRepo *database.AllowedRegistrationRepository
 }
 
-func NewUserHandler(userRepo *database.UserRepository, sessionRepo *database.SessionRepository) *UserHandler {
+func NewUserHandler(userRepo *database.UserRepository, sessionRepo *database.SessionRepository, allowedRegistrationsRepo *database.AllowedRegistrationRepository) *UserHandler {
 	return &UserHandler{
-		UserRepo:    userRepo,
-		SessionRepo: sessionRepo,
+		UserRepo:          userRepo,
+		SessionRepo:       sessionRepo,
+		AllowedRegistRepo: allowedRegistrationsRepo,
 	}
 }
 
@@ -139,6 +141,11 @@ func (userHandler *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http
 		return
 	}
 
+	if req.DNI == "" {
+		http.Error(w, "DNI is required", http.StatusBadRequest)
+		return
+	}
+
 	if req.ProfilePicture == "" {
 		req.ProfilePicture = "https://oyster.ignimgs.com/mediawiki/apis.ign.com/adventure-time-hey-ice-king/a/a6/JakeHeadshot.jpg"
 	}
@@ -147,6 +154,16 @@ func (userHandler *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http
 		http.Error(w, "Invalid password", http.StatusBadRequest)
 		return
 	}
+	err = userHandler.AllowedRegistRepo.UseDNI(req.DNI)
+	if err != nil {
+		http.Error(w, "Invalid DNI", http.StatusBadRequest)
+		return
+	}
+	if !isValidPassword(req.Password) {
+		http.Error(w, "Invalid Password", http.StatusBadRequest)
+		return
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), 14)
 	if err != nil {
 		http.Error(w, "Failed to process password", http.StatusInternalServerError)
