@@ -20,6 +20,11 @@ type PatientUpdate struct {
 	AproxDateOfBirth *time.Time `json:"aproxDateOfBirth"`
 }
 
+func NewPatientHandler(patientRepo *database.PatientRepository) *PatientHandler {
+	return &PatientHandler{
+		patientRepo: patientRepo,
+	}
+}
 func (patientHandler *PatientHandler) CreatePatientHandler(w http.ResponseWriter, r *http.Request) {
 	var patient domain.Patient
 	err := json.NewDecoder(r.Body).Decode(&patient)
@@ -27,7 +32,6 @@ func (patientHandler *PatientHandler) CreatePatientHandler(w http.ResponseWriter
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	if patient.Name == "" {
 		http.Error(w, "Name is required", http.StatusBadRequest)
 		return
@@ -56,7 +60,7 @@ func (patientHandler *PatientHandler) CreatePatientHandler(w http.ResponseWriter
 }
 
 func (patientHandler *PatientHandler) GetPatientByIDHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("patient-id")
+	id := r.PathValue("patient_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return
@@ -80,7 +84,7 @@ func (patientHandler *PatientHandler) GetPatientByIDHandler(w http.ResponseWrite
 	json.NewEncoder(w).Encode(patient)
 }
 func (patientHandler *PatientHandler) GetPatientByOwnerIDHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("owner-id")
+	id := r.PathValue("owner_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return
@@ -101,7 +105,7 @@ func (patientHandler *PatientHandler) GetPatientByOwnerIDHandler(w http.Response
 }
 
 func (patientHandler *PatientHandler) UpdatePatientHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("patient-id")
+	id := r.PathValue("patient_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return
@@ -167,7 +171,7 @@ func (patientHandler *PatientHandler) UpdatePatientHandler(w http.ResponseWriter
 }
 
 func (patientHandler *PatientHandler) DeletePatientHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("patient-id")
+	id := r.PathValue("patient_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return

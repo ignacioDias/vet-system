@@ -19,6 +19,13 @@ type UserHandler struct {
 	SessionRepo *database.SessionRepository
 }
 
+func NewUserHandler(userRepo *database.UserRepository, sessionRepo *database.SessionRepository) *UserHandler {
+	return &UserHandler{
+		UserRepo:    userRepo,
+		SessionRepo: sessionRepo,
+	}
+}
+
 var isProduction bool = os.Getenv("ENV") == "production"
 
 type CreateUserRequest struct {
@@ -273,7 +280,7 @@ func (userHandler *UserHandler) UpdatePasswordHandler(w http.ResponseWriter, r *
 }
 
 func (userHandler *UserHandler) authorizeUserAccess(w http.ResponseWriter, r *http.Request) (int64, bool) {
-	id := r.PathValue("user-id")
+	id := r.PathValue("user_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return 0, false

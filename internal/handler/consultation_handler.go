@@ -10,7 +10,7 @@ import (
 )
 
 type ConsultationHandler struct {
-	consultationRepo *database.ConsultationRepository
+	consultRepo *database.ConsultationRepository
 }
 
 type ConsultationRequest struct {
@@ -31,6 +31,12 @@ type ConsultationUpdate struct {
 	IsCompleted *bool            `json:"is_completed"`
 }
 
+func NewConsultationHandler(consultRepo *database.ConsultationRepository) *ConsultationHandler {
+	return &ConsultationHandler{
+		consultRepo: consultRepo,
+	}
+}
+
 func (consultationHandler *ConsultationHandler) CreateConsultationHandler(w http.ResponseWriter, r *http.Request) {
 	var consultationRequest ConsultationRequest
 	err := json.NewDecoder(r.Body).Decode(&consultationRequest)
@@ -49,7 +55,7 @@ func (consultationHandler *ConsultationHandler) CreateConsultationHandler(w http
 	}
 
 	consultation := domain.NewConsultation(consultationRequest.PatientID, consultationRequest.Reason, consultationRequest.Diagnosis, consultationRequest.Treatment, consultationRequest.Severity)
-	err = consultationHandler.consultationRepo.CreateConsultation(consultation)
+	err = consultationHandler.consultRepo.CreateConsultation(consultation)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -60,7 +66,7 @@ func (consultationHandler *ConsultationHandler) CreateConsultationHandler(w http
 }
 
 func (consultationHandler *ConsultationHandler) GetConsultationByIDHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("consultation-id")
+	id := r.PathValue("consultation_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return
@@ -70,7 +76,7 @@ func (consultationHandler *ConsultationHandler) GetConsultationByIDHandler(w htt
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	consultation, err := consultationHandler.consultationRepo.GetConsultationByID(idValue)
+	consultation, err := consultationHandler.consultRepo.GetConsultationByID(idValue)
 	if err == database.ErrConsultationNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -95,7 +101,7 @@ func (consultationHandler *ConsultationHandler) GetConsultationsByClientIDHandle
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	consultations, err := consultationHandler.consultationRepo.GetConsultationsByClientID(idValue)
+	consultations, err := consultationHandler.consultRepo.GetConsultationsByClientID(idValue)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -106,7 +112,7 @@ func (consultationHandler *ConsultationHandler) GetConsultationsByClientIDHandle
 }
 
 func (consultationHandler *ConsultationHandler) GetConsultationsByPatientIDHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("patient-id")
+	id := r.PathValue("patient_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return
@@ -116,7 +122,7 @@ func (consultationHandler *ConsultationHandler) GetConsultationsByPatientIDHandl
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	consultations, err := consultationHandler.consultationRepo.GetConsultationsByPatientID(idValue)
+	consultations, err := consultationHandler.consultRepo.GetConsultationsByPatientID(idValue)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -138,9 +144,9 @@ func (consultationHandler *ConsultationHandler) GetAllConsultationsHandler(w htt
 			http.Error(w, "Invalid is_completed parameter. Use 'true' or 'false'", http.StatusBadRequest)
 			return
 		}
-		consultations, err = consultationHandler.consultationRepo.GetConsultationsByIsCompleted(isCompletedValue)
+		consultations, err = consultationHandler.consultRepo.GetConsultationsByIsCompleted(isCompletedValue)
 	} else {
-		consultations, err = consultationHandler.consultationRepo.GetAllConsultations()
+		consultations, err = consultationHandler.consultRepo.GetAllConsultations()
 	}
 
 	if err != nil {
@@ -152,7 +158,7 @@ func (consultationHandler *ConsultationHandler) GetAllConsultationsHandler(w htt
 	json.NewEncoder(w).Encode(consultations)
 }
 func (consultationHandler *ConsultationHandler) UpdateConsultationHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("consultation-id")
+	id := r.PathValue("consultation_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return
@@ -169,7 +175,7 @@ func (consultationHandler *ConsultationHandler) UpdateConsultationHandler(w http
 		return
 	}
 
-	consultation, err := consultationHandler.consultationRepo.GetConsultationByID(idValue)
+	consultation, err := consultationHandler.consultRepo.GetConsultationByID(idValue)
 	if err == database.ErrConsultationNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -212,7 +218,7 @@ func (consultationHandler *ConsultationHandler) UpdateConsultationHandler(w http
 
 	consultation.UpdatedAt = time.Now()
 
-	err = consultationHandler.consultationRepo.UpdateConsultation(consultation)
+	err = consultationHandler.consultRepo.UpdateConsultation(consultation)
 	if err == database.ErrConsultationNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -224,7 +230,7 @@ func (consultationHandler *ConsultationHandler) UpdateConsultationHandler(w http
 	w.WriteHeader(http.StatusNoContent)
 }
 func (consultationHandler *ConsultationHandler) DeleteConsultationHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("consultation-id")
+	id := r.PathValue("consultation_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return
@@ -234,7 +240,7 @@ func (consultationHandler *ConsultationHandler) DeleteConsultationHandler(w http
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = consultationHandler.consultationRepo.DeleteConsultation(idValue)
+	err = consultationHandler.consultRepo.DeleteConsultation(idValue)
 	if err == database.ErrConsultationNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

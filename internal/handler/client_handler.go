@@ -12,6 +12,12 @@ type ClientHandler struct {
 	clientRepo *database.ClientRepository
 }
 
+func NewClientHandler(clientRepo *database.ClientRepository) *ClientHandler {
+	return &ClientHandler{
+		clientRepo: clientRepo,
+	}
+}
+
 type ClientUpdate struct {
 	DNI         *string `json:"dni"`
 	Name        *string `json:"name"`
@@ -50,7 +56,7 @@ func (clientHandler *ClientHandler) CreateClient(w http.ResponseWriter, r *http.
 }
 
 func (clientHandler *ClientHandler) GetClientByIDHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("client-id")
+	id := r.PathValue("client_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return
@@ -75,7 +81,7 @@ func (clientHandler *ClientHandler) GetClientByIDHandler(w http.ResponseWriter, 
 }
 
 func (clientHandler *ClientHandler) GetClientByDNIHandler(w http.ResponseWriter, r *http.Request) {
-	dni := r.PathValue("client-dni")
+	dni := r.PathValue("client_dni")
 	if dni == "" {
 		http.Error(w, "No dni passed", http.StatusBadRequest)
 		return
@@ -95,7 +101,7 @@ func (clientHandler *ClientHandler) GetClientByDNIHandler(w http.ResponseWriter,
 }
 
 func (clientHandler *ClientHandler) UpdateClientHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("client-id")
+	id := r.PathValue("client_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return
@@ -154,7 +160,7 @@ func (clientHandler *ClientHandler) UpdateClientHandler(w http.ResponseWriter, r
 }
 
 func (clientHandler *ClientHandler) DeleteClientHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("client-id")
+	id := r.PathValue("client_id")
 	if id == "" {
 		http.Error(w, "No id passed", http.StatusBadRequest)
 		return

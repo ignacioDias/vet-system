@@ -1,0 +1,30 @@
+# Environment files
+.env
+
+# Binary output
+/cmd/vetsys/vetsys
+vetsys
+main
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Dependency directories
+vendor/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
