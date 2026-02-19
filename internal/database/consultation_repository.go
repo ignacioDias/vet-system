@@ -37,7 +37,7 @@ func (consultationRepository *ConsultationRepository) GetConsultationByID(id int
 	}
 	return &consultation, nil
 }
-func (consultationRepository *ConsultationRepository) GetConsultationsByClientID(clientID int64) ([]domain.Consultation, error) {
+func (consultationRepository *ConsultationRepository) GetConsultationsByClientID(clientID int64, limit int, offset int) ([]domain.Consultation, error) {
 	query := `
 	SELECT c.id, c.patient_id, c.reason, c.diagnosis, 
 	       c.treatment, c.severity, c.is_completed, 
@@ -45,37 +45,37 @@ func (consultationRepository *ConsultationRepository) GetConsultationsByClientID
 	FROM consultations c
 	JOIN patients p ON c.patient_id = p.id
 	WHERE p.owner_id = $1
-	ORDER BY c.created_at DESC
+	LIMIT $2 OFFSET $3
 	`
 	var consultations []domain.Consultation
-	err := consultationRepository.DB.Select(&consultations, query, clientID)
+	err := consultationRepository.DB.Select(&consultations, query, clientID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	return consultations, nil
 }
-func (consultationRepository *ConsultationRepository) GetConsultationsByPatientID(patientID int64) ([]domain.Consultation, error) {
-	query := `SELECT id, patient_id, reason, diagnosis, treatment, severity, is_completed, created_at, updated_at FROM consultations WHERE patient_id = $1`
+func (consultationRepository *ConsultationRepository) GetConsultationsByPatientID(patientID int64, limit int, offset int) ([]domain.Consultation, error) {
+	query := `SELECT id, patient_id, reason, diagnosis, treatment, severity, is_completed, created_at, updated_at FROM consultations WHERE patient_id = $1 LIMIT $2 OFFSET $3`
 	var consultations []domain.Consultation
-	err := consultationRepository.DB.Select(&consultations, query, patientID)
+	err := consultationRepository.DB.Select(&consultations, query, patientID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	return consultations, nil
 }
-func (consultationRepository *ConsultationRepository) GetAllConsultations() ([]domain.Consultation, error) {
-	query := `SELECT id, patient_id, reason, diagnosis, treatment, severity, is_completed, created_at, updated_at FROM consultations`
+func (consultationRepository *ConsultationRepository) GetAllConsultations(limit int, offset int) ([]domain.Consultation, error) {
+	query := `SELECT id, patient_id, reason, diagnosis, treatment, severity, is_completed, created_at, updated_at FROM consultations LIMIT $1 OFFSET $2`
 	var consultations []domain.Consultation
-	err := consultationRepository.DB.Select(&consultations, query)
+	err := consultationRepository.DB.Select(&consultations, query, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	return consultations, nil
 }
-func (consultationRepository *ConsultationRepository) GetConsultationsByIsCompleted(isCompleted bool) ([]domain.Consultation, error) {
-	query := `SELECT id, patient_id, reason, diagnosis, treatment, severity, is_completed, created_at, updated_at FROM consultations WHERE is_completed = $1`
+func (consultationRepository *ConsultationRepository) GetConsultationsByIsCompleted(isCompleted bool, limit int, offset int) ([]domain.Consultation, error) {
+	query := `SELECT id, patient_id, reason, diagnosis, treatment, severity, is_completed, created_at, updated_at FROM consultations WHERE is_completed = $1 LIMIT $2 OFFSET $3`
 	var consultations []domain.Consultation
-	err := consultationRepository.DB.Select(&consultations, query, isCompleted)
+	err := consultationRepository.DB.Select(&consultations, query, isCompleted, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -111,4 +111,34 @@ func (consultationRepository *ConsultationRepository) DeleteConsultation(id int6
 		return ErrConsultationNotFound
 	}
 	return nil
+}
+
+func (r *ConsultationRepository) GetAllConsultationsCount() (int64, error) {
+	var count int64
+	query := `SELECT COUNT(*) FROM consultations`
+	err := r.DB.Get(&count, query)
+	return count, err
+}
+
+func (r *ConsultationRepository) GetConsultationsByPatientIDCount(patientID int64) (int64, error) {
+	var count int64
+	query := `SELECT COUNT(*) FROM consultations WHERE patient_id = $1`
+	err := r.DB.Get(&count, query, patientID)
+	return count, err
+}
+
+func (r *ConsultationRepository) GetConsultationsByClientIDCount(clientID int64) (int64, error) {
+	var count int64
+	query := `SELECT COUNT(*) FROM consultations c
+              JOIN patients p ON c.patient_id = p.id
+              WHERE p.owner_id = $1`
+	err := r.DB.Get(&count, query, clientID)
+	return count, err
+}
+
+func (r *ConsultationRepository) GetConsultationsByIsCompletedCount(isCompleted bool) (int64, error) {
+	var count int64
+	query := `SELECT COUNT(*) FROM consultations WHERE is_completed = $1`
+	err := r.DB.Get(&count, query, isCompleted)
+	return count, err
 }

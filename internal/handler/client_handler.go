@@ -44,15 +44,6 @@ func (clientHandler *ClientHandler) CreateClient(w http.ResponseWriter, r *http.
 		http.Error(w, "Phone number is required", http.StatusBadRequest)
 		return
 	}
-	if err == database.ErrDNIInvalidOrUsed {
-		http.Error(w, "DNI not allowed for registration or already used", http.StatusForbidden)
-		return
-	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	err = clientHandler.clientRepo.CreateClient(&client)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

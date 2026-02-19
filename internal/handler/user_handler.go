@@ -154,13 +154,8 @@ func (userHandler *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http
 		http.Error(w, "Invalid password", http.StatusBadRequest)
 		return
 	}
-	err = userHandler.AllowedRegistRepo.UseDNI(req.DNI)
-	if err != nil {
+	if err := userHandler.AllowedRegistRepo.UseDNI(req.DNI); err != nil {
 		http.Error(w, "Invalid DNI", http.StatusBadRequest)
-		return
-	}
-	if !isValidPassword(req.Password) {
-		http.Error(w, "Invalid Password", http.StatusBadRequest)
 		return
 	}
 

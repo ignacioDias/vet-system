@@ -66,8 +66,7 @@ func TestConsultationRepository_GetConsultationsByClientID(t *testing.T) {
 
 	cons2 := domain.NewConsultation(patient.ID, "Vaccination", "Up to date", "Rabies vaccine", domain.SeverityLow)
 	testDB.ConsultationRepo.CreateConsultation(cons2)
-
-	consultations, err := testDB.ConsultationRepo.GetConsultationsByClientID(client.ID)
+	consultations, err := testDB.ConsultationRepo.GetConsultationsByClientID(client.ID, 20, 0)
 	if err != nil {
 		t.Fatalf("Failed to get consultations by client ID: %v", err)
 	}
@@ -90,7 +89,7 @@ func TestConsultationRepository_GetConsultationsByPatientID(t *testing.T) {
 	cons := domain.NewConsultation(patient.ID, "Emergency", "Toxic ingestion", "Activated charcoal", domain.SeverityCritical)
 	testDB.ConsultationRepo.CreateConsultation(cons)
 
-	consultations, err := testDB.ConsultationRepo.GetConsultationsByPatientID(patient.ID)
+	consultations, err := testDB.ConsultationRepo.GetConsultationsByPatientID(patient.ID, 20, 0)
 	if err != nil {
 		t.Fatalf("Failed to get consultations by patient ID: %v", err)
 	}
