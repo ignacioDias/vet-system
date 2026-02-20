@@ -1,5 +1,3 @@
-import { checkAuth } from "./auth.js";
-
 const form = document.getElementById("filtersForm");
 const clearBtn = document.getElementById("clearFilters");
 const consultationsContainer = document.querySelector(".consultations");
@@ -123,27 +121,19 @@ function renderPagination() {
     });
 }
 
-// =======================
-// FORM SUBMIT
-// =======================
 form.addEventListener("submit", (e) => {
     e.preventDefault();
     currentPage = 1;
     fetchConsultations(1);
 });
 
-// =======================
 // CLEAR FILTERS
-// =======================
 clearBtn.addEventListener("click", () => {
     form.reset();
     currentPage = 1;
     fetchConsultations(1);
 });
 
-// =======================
-// UTIL
-// =======================
 function formatDate(dateString) {
     if (!dateString) return "-";
     const date = new Date(dateString);
