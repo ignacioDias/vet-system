@@ -14,7 +14,7 @@ A veterinary management system built with Go and PostgreSQL.
 
 - **Language**: Go 1.25.6
 - **Database**: PostgreSQL
-- **Router**: Chi (implied from structure)
+- **Router**: Go standard library 
 - **Authentication**: Session-based with bcrypt password hashing
 
 ## Prerequisites
