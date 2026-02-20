@@ -24,7 +24,7 @@ $form.addEventListener("submit", async (event) => {
         })
 
         if (response.ok) {
-            window.location.href = "/"
+            window.location.href = "/consultations"
         } else {
             const errorText = await response.text()
             
