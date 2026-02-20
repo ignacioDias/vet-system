@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <link rel="stylesheet" href="static/css/home.css">
+</head>
+<body>
+    <nav class="horizontal-navbar">
+        <ul>
+            <li>
+                <a class="active" href="/home">Inicio</a>
+            </li>
+            <li>
+                <a href="/settings">Ajustes</a>
+            </li>
+            <li>
+                <a href="/api/auth/logout">Salir</a>
+            </li>
+        </ul>
+    </nav>
+    <div class="consultations-section two-column-layout">
+        <aside class="filters">
+            <form id="filtersForm">
+                <fieldset>
+                    <legend>Filtrar</legend>
+                    <label for="is_completed">Estado:</label>
+                    <select id="is_completed" name="is_completed">
+                        <option value="">Todas</option>
+                        <option value="true">Completadas</option>
+                        <option value="false">Pendientes</option>
+                    </select>
+                    <label for="dni">DNI del dueño:</label>
+                    <input 
+                        id="dni"
+                        type="text" 
+                        name="dni" 
+                        placeholder="DNI dueño (sin puntos)"
+                        pattern="[0-9]+"
+                    >
+                </fieldset>
+                <fieldset>
+                    <legend>Ordenar</legend>
+                    <label for="order">Orden:</label>
+                    <select id="order" name="order">
+                        <option value="desc">Más nuevas</option>
+                        <option value="asc">Más antiguas</option>
+                    </select>
+                </fieldset>
+                <button type="submit">Aplicar</button>
+                <button type="button" id="clearFilters">Limpiar</button>
+            </form>
+        </aside>
+        <section class="consultations-wrapper">
+            <div class="consultations">
+            </div>
+        </section>
+    </div>
+    <script type="module" src="static/js/home.js"></script>
+</body>
+</html>

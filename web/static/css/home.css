@@ -1,0 +1,395 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    background-color: #f5f7fa;
+    min-height: 100vh;
+    padding: 0;
+}
+
+/* Horizontal Navbar */
+.horizontal-navbar {
+    background-color: #1e3a8a;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.horizontal-navbar ul {
+    list-style: none;
+    display: flex;
+    padding: 0;
+    margin: 0;
+}
+
+.horizontal-navbar li {
+    margin: 0;
+}
+
+.horizontal-navbar a {
+    display: block;
+    padding: 16px 24px;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.horizontal-navbar a:hover {
+    background-color: #1e40af;
+}
+
+.horizontal-navbar a.active {
+    background-color: #1e40af;
+    border-bottom: 3px solid #ffffff;
+}
+
+/* Main Content */
+
+.consultations-section.two-column-layout {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+}
+
+/* Filters Section */
+
+.filters {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-top: 4px solid #1e3a8a;
+    min-width: 280px;
+    max-width: 340px;
+    flex: 0 0 320px;
+    margin-bottom: 0;
+}
+
+.consultations-wrapper {
+    flex: 1 1 0%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.filters form {
+    display: grid;
+    gap: 20px;
+}
+
+.filters fieldset {
+    border: 2px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 20px;
+    background-color: #f8fafc;
+}
+
+.filters legend {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e3a8a;
+    padding: 0 10px;
+}
+
+.filters label {
+    display: block;
+    font-size: 0.95rem;
+    color: #334155;
+    font-weight: 600;
+    margin-bottom: 8px;
+    margin-top: 12px;
+}
+
+.filters label:first-of-type {
+    margin-top: 0;
+}
+
+.filters input,
+.filters select {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    transition: border-color 0.2s ease;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    background-color: #ffffff;
+}
+
+.filters input:focus,
+.filters select:focus {
+    outline: none;
+    border-color: #1e3a8a;
+}
+
+.filters input:hover,
+.filters select:hover {
+    border-color: #94a3b8;
+}
+
+.filters button {
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    background-color: #1e3a8a;
+    color: #ffffff;
+}
+
+.filters button:hover {
+    background-color: #1e40af;
+}
+
+.filters button:active {
+    background-color: #1e3a8a;
+}
+
+.filters button[type="button"] {
+    background-color: #ffffff;
+    color: #1e3a8a;
+    border: 2px solid #1e3a8a;
+}
+
+.filters button[type="button"]:hover {
+    background-color: #f1f5f9;
+}
+
+.filters button[type="button"]:active {
+    background-color: #e2e8f0;
+}
+
+/* Consultations Container */
+.consultations {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-top: 4px solid #1e3a8a;
+}
+
+.consultations p {
+    color: #64748b;
+    font-size: 1rem;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Table Styles */
+.consultations table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.consultations table thead {
+    background-color: #1e3a8a;
+    color: #ffffff;
+}
+
+.consultations table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-bottom: 2px solid #1e40af;
+}
+
+.consultations table tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+    transition: background-color 0.15s ease;
+}
+
+.consultations table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.consultations table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.consultations table td {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+    color: #334155;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+}
+
+.pagination button {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: 2px solid #1e3a8a;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #1e3a8a;
+    color: #ffffff;
+}
+
+.pagination button:hover:not(:disabled) {
+    background-color: #1e40af;
+    border-color: #1e40af;
+}
+
+.pagination button:active:not(:disabled) {
+    background-color: #1e3a8a;
+}
+
+.pagination button:disabled {
+    background-color: #e2e8f0;
+    border-color: #cbd5e1;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.pagination span {
+    font-size: 0.95rem;
+    color: #334155;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .consultations-section.two-column-layout {
+        flex-direction: column;
+        gap: 0;
+    }
+    .filters {
+        max-width: 100%;
+        width: 100%;
+        margin-bottom: 20px;
+        flex: unset;
+    }
+    .consultations-wrapper {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .horizontal-navbar a {
+        padding: 14px 18px;
+        font-size: 0.95rem;
+    }
+    .consultations-section.two-column-layout {
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+    .filters,
+    .consultations {
+        padding: 15px;
+    }
+    .filters fieldset {
+        padding: 10px;
+    }
+    .consultations table {
+        font-size: 0.9rem;
+    }
+    .consultations table th,
+    .consultations table td {
+        padding: 8px 8px;
+    }
+    .pagination {
+        gap: 10px;
+    }
+    .pagination button {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .horizontal-navbar ul {
+        flex-direction: column;
+    }
+    
+    .horizontal-navbar a {
+        padding: 12px 20px;
+        border-left: 3px solid transparent;
+    }
+    
+    .horizontal-navbar a.active {
+        border-bottom: none;
+        border-left-color: #ffffff;
+    }
+    
+    .filters {
+        padding: 20px 15px;
+    }
+    
+    .filters fieldset {
+        padding: 12px;
+    }
+    
+    .filters legend {
+        font-size: 1rem;
+    }
+    
+    .filters label {
+        font-size: 0.9rem;
+    }
+    
+    .filters input,
+    .filters select {
+        padding: 10px 14px;
+        font-size: 0.95rem;
+    }
+    
+    .filters button {
+        padding: 12px 24px;
+        font-size: 0.95rem;
+    }
+    
+    .consultations {
+        padding: 15px;
+        overflow-x: auto;
+    }
+    
+    .consultations table {
+        min-width: 600px;
+    }
+    
+    .pagination {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .pagination button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 400px) {
+    .horizontal-navbar a {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .filters {
+        padding: 15px 10px;
+    }
+    
+    .consultations {
+        padding: 15px 10px;
+    }
+}

@@ -291,6 +291,21 @@ func (userHandler *UserHandler) UpdatePasswordHandler(w http.ResponseWriter, r *
 	userHandler.LogOutHandler(w, r)
 }
 
+func (userHandler *UserHandler) MeHandler(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.GetUserID(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	user, err := userHandler.UserRepo.GetUserByID(userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+}
+
 func (userHandler *UserHandler) authorizeUserAccess(w http.ResponseWriter, r *http.Request) (int64, bool) {
 	id := r.PathValue("user_id")
 	if id == "" {

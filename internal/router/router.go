@@ -45,6 +45,10 @@ func (r *Router) SetupRoutes() *http.ServeMux {
 		http.ServeFile(w, r, "web/login.html")
 	})
 
+	r.mux.HandleFunc("GET /home", r.authMiddleware.Authenticate(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/home.html")
+	}))
+
 	//USERS
 	r.mux.HandleFunc("POST /api/auth/login", r.rateLimitMiddleware.RateLimit(r.userHandler.LogInHandler))
 	r.mux.HandleFunc("POST /api/users", r.rateLimitMiddleware.RateLimit(r.userHandler.CreateUserHandler))
@@ -52,7 +56,7 @@ func (r *Router) SetupRoutes() *http.ServeMux {
 	r.mux.HandleFunc("DELETE /api/users/{user_id}", r.authMiddleware.Authenticate(r.userHandler.DeleteUserHandler))
 	r.mux.HandleFunc("PUT /api/users/{user_id}", r.authMiddleware.Authenticate(r.userHandler.UpdateUserHandler))
 	r.mux.HandleFunc("PUT /api/users/{user_id}/password", r.authMiddleware.Authenticate(r.userHandler.UpdatePasswordHandler))
-
+	r.mux.HandleFunc("GET /api/auth/me", r.authMiddleware.Authenticate(r.userHandler.MeHandler))
 	//CLIENTS
 	r.mux.HandleFunc("POST /api/clients", r.authMiddleware.Authenticate(r.clientHandler.CreateClient))
 	r.mux.HandleFunc("GET /api/clients/{client_id}", r.authMiddleware.Authenticate(r.clientHandler.GetClientByIDHandler))
