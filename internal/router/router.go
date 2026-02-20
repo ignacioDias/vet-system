@@ -34,6 +34,16 @@ func NewRouter(
 }
 
 func (r *Router) SetupRoutes() *http.ServeMux {
+	r.mux.Handle("GET /", http.FileServer(http.Dir("web")))
+	r.mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/index.html")
+	})
+	r.mux.HandleFunc("GET /register", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/register.html")
+	})
+	r.mux.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/login.html")
+	})
 
 	//USERS
 	r.mux.HandleFunc("POST /api/auth/login", r.rateLimitMiddleware.RateLimit(r.userHandler.LogInHandler))
